@@ -32,6 +32,30 @@ const DEFAULT_CONFIG: RunConfig = {
   aiTopic: "",
 };
 
+type TextRun =
+  | { kind: "word"; start: number; text: string }
+  | { kind: "space"; index: number };
+
+function buildTextRuns(text: string): TextRun[] {
+  const runs: TextRun[] = [];
+  let wordStart: number | null = null;
+
+  for (let index = 0; index < text.length; index++) {
+    if (text[index] === " ") {
+      if (wordStart !== null) {
+        runs.push({ kind: "word", start: wordStart, text: text.slice(wordStart, index) });
+        wordStart = null;
+      }
+      runs.push({ kind: "space", index });
+    } else if (wordStart === null) {
+      wordStart = index;
+    }
+  }
+
+  if (wordStart !== null) runs.push({ kind: "word", start: wordStart, text: text.slice(wordStart) });
+  return runs;
+}
+
 function fmtTime(seconds: number): string {
   const s = Math.max(0, Math.round(seconds));
   const m = Math.floor(s / 60);
@@ -106,7 +130,25 @@ function TypeStage({
   }, [engine.index]);
 
   const chars = engine.text.split("");
+  const runs = buildTextRuns(engine.text);
   const nextChar = chars[engine.index] ?? "";
+  const renderChar = (char: string, index: number) => {
+    const state = engine.charStates[index];
+    const classes = [
+      "ch",
+      char === " " ? "ch-space" : "",
+      state === "correct" ? "ch-ok" : "",
+      state === "wrong" ? "ch-bad" : "",
+      index === engine.index ? "ch-cur" : "",
+      engine.ghost === index ? "ch-ghost" : "",
+    ].filter(Boolean).join(" ");
+
+    return (
+      <span className={classes} data-i={index} key={`${char}-${index}`} ref={index === engine.index ? activeRef : undefined}>
+        {char}
+      </span>
+    );
+  };
 
   return (
     <div className="engine">
@@ -136,18 +178,14 @@ function TypeStage({
 
       <div className={`type-area lang-${lang}`} tabIndex={0} aria-label="Typing text">
         <div className="words-inner" ref={wordsInnerRef}>
-          {chars.map((char, index) => {
-            const state = engine.charStates[index];
-            const classes = [
-              "ch",
-              state === "correct" ? "ch-ok" : "",
-              state === "wrong" ? "ch-bad" : "",
-              index === engine.index ? "ch-cur" : "",
-              engine.ghost === index ? "ch-ghost" : "",
-            ].filter(Boolean).join(" ");
+          {runs.map((run) => {
+            if (run.kind === "space") {
+              return <span className="space-token" key={`space-${run.index}`}>{renderChar(" ", run.index)}</span>;
+            }
+
             return (
-              <span className={classes} data-i={index} key={`${char}-${index}`} ref={index === engine.index ? activeRef : undefined}>
-                {char === " " ? "\u00A0" : char}
+              <span className="word-token" key={`word-${run.start}`}>
+                {run.text.split("").map((char, offset) => renderChar(char, run.start + offset))}
               </span>
             );
           })}

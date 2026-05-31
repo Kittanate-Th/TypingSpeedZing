@@ -10,6 +10,16 @@ export const TH_WORDS = (
   "การ ความ ที่ และ ของ ใน เป็น มี ได้ ให้ ไม่ จะ มา กับ ว่า นี้ คน วัน ดี ทำ ไป อยู่ แล้ว ต้อง เรา เขา กัน เพราะ หรือ แต่ ถ้า เมื่อ จาก โดย เพื่อ ตาม อย่าง ก็ มาก น้อย ใหม่ เก่า ใหญ่ เล็ก สูง ต่ำ เร็ว ช้า ดี งาน บ้าน เมือง โลก ชีวิต เวลา เรื่อง ทาง น้ำ ไฟ ลม ดิน ฟ้า รัก คิด รู้ เห็น พูด ฟัง เดิน นั่ง ยืน นอน กิน เล่น เรียน สอน อ่าน เขียน จำ ลืม หวัง ฝัน สร้าง ใช้ เปิด ปิด เริ่ม จบ พบ หา เจอ ช่วย ขอ บอก ถาม ตอบ ชอบ กลัว สุข เศร้า ยิ้ม หัวเราะ"
 ).split(" ");
 
+EN_WORDS.push(
+  ..."air light sound room story morning night family friend market street river mountain ocean forest window garden paper letter idea dream focus skill typing keyboard screen lesson practice steady simple clear sharp quick calm brave honest bright active modern local global travel health energy memory reason choice value result design create update review improve measure record target finish start select repeat correct mistake balance minute second future history culture science music art movie coffee tea food water city village office project message signal source browser button input output"
+    .split(" "),
+);
+
+TH_WORDS.push(
+  ..."วันนี้ เวลา บ้าน เมือง งาน เรียน อ่าน เขียน คิด ทำ เล่น เดิน นั่ง นอน กิน น้ำ ไฟ ลม ดิน ฟ้า รถ หนังสือ เพลง ตลาด ร้าน อาหาร กาแฟ ชา เงิน เพื่อน ครอบครัว เด็ก ผู้ใหญ่ โรงเรียน มหาวิทยาลัย คอมพิวเตอร์ โทรศัพท์ ภาษา ไทย อังกฤษ ข่าว สุขภาพ กีฬา ท่องเที่ยว ธรรมชาติ ภูเขา ทะเล แม่น้ำ ฝน แดด เช้า กลางวัน เย็น คืน ห้อง ถนน หน้าต่าง สวน กระดาษ จดหมาย ความคิด ความฝัน สมาธิ ทักษะ แป้นพิมพ์ หน้าจอ แบบฝึก ความเร็ว แม่นยำ เรียบง่าย ชัดเจน กล้าหาญ ซื่อสัตย์ สดใส ทันสมัย ท้องถิ่น สากล เดินทาง พลังงาน ความจำ เหตุผล ตัวเลือก คุณค่า ผลลัพธ์ ออกแบบ สร้าง อัปเดต ตรวจสอบ ปรับปรุง วัดผล บันทึก เป้าหมาย สำเร็จ เริ่มต้น เลือก ทำซ้ำ ถูกต้อง ผิดพลาด สมดุล นาที วินาที อนาคต ประวัติศาสตร์ วัฒนธรรม วิทยาศาสตร์ ดนตรี ศิลปะ ภาพยนตร์"
+    .split(" "),
+);
+
 export const EN_QUOTES = [
   "the quick brown fox jumps over the lazy dog while the sun sets behind the quiet hills",
   "every keystroke is a small act of intention and the rhythm of your hands becomes a kind of music",

@@ -251,8 +251,30 @@ button { border: 0; color: inherit; cursor: pointer; background: none; }
   letter-spacing: .01em;
 }
 .type-area.lang-th { line-height: 1.9; font-size: 30px; }
-.words-inner { min-height: 100%; }
-.ch { color: var(--dim); transition: color .08s, background .08s; }
+.words-inner {
+  min-height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow: hidden;
+}
+.word-token {
+  display: inline-flex;
+  white-space: nowrap;
+}
+.space-token {
+  display: inline-flex;
+  width: .68ch;
+  flex: 0 0 .68ch;
+}
+.ch {
+  display: inline-block;
+  color: var(--dim);
+  transition: color .08s, background .08s;
+}
+.ch-space {
+  width: .68ch;
+}
 .ch-ok { color: var(--fg); }
 .ch-bad {
   color: var(--bad);
