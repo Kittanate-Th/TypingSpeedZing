@@ -231,6 +231,12 @@ function AppContent() {
     }
   };
 
+  const cycleGlow = () => {
+    const levels = [0, 40, 70, 100] as const;
+    const currentIndex = levels.findIndex((level) => settings.glow <= level);
+    patchSettings("glow", levels[(currentIndex + 1) % levels.length]);
+  };
+
   return (
     <div
       className="root"
@@ -373,6 +379,8 @@ function AppContent() {
           ))}
           <button className={`mini-toggle ${settings.showKeyboard ? "on" : ""}`} onClick={() => patchSettings("showKeyboard", !settings.showKeyboard)}>kbd</button>
           <button className={`mini-toggle ${settings.heatmap ? "on" : ""}`} onClick={() => patchSettings("heatmap", !settings.heatmap)}>heat</button>
+          <button className="mini-toggle" onClick={cycleGlow}>glow {settings.glow}</button>
+          <button className="mini-toggle" onClick={() => patchSettings("font", settings.font === "geist" ? "system" : "geist")}>{settings.font}</button>
         </div>
       </footer>
     </div>
