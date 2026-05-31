@@ -5,7 +5,7 @@ import { Keyboard } from "./components/Keyboard";
 import { generatePassage } from "./ai/provider";
 import { HistoryProvider, useHistory } from "./store/history";
 import { SettingsProvider, useSettings } from "./store/settings";
-import { I18nProvider, useT } from "./i18n";
+import { I18nProvider, useT, type TranslationKey } from "./i18n";
 import type { Accent, Direction, Lang, ModeId, RunConfig, RunResult, Settings } from "./types";
 
 const ACCENTS: Record<Accent, { base: string; on: string }> = {
@@ -15,12 +15,12 @@ const ACCENTS: Record<Accent, { base: string; on: string }> = {
   sky: { base: "#38bdf8", on: "#04141f" },
 };
 
-const MODES: Array<{ id: ModeId; en: string; th: string; icon: string }> = [
-  { id: "time", en: "Time", th: "เวลา", icon: "◷" },
-  { id: "words", en: "Words", th: "คำ", icon: "▦" },
-  { id: "lesson", en: "Lesson", th: "บทเรียน", icon: "◉" },
-  { id: "race", en: "Race", th: "แข่ง", icon: "↯" },
-  { id: "ai", en: "AI", th: "เอไอ", icon: "✦" },
+const MODES: Array<{ id: ModeId; icon: string }> = [
+  { id: "time", icon: "◷" },
+  { id: "words", icon: "▦" },
+  { id: "lesson", icon: "◉" },
+  { id: "race", icon: "↯" },
+  { id: "ai", icon: "✦" },
 ];
 
 const DEFAULT_CONFIG: RunConfig = {
@@ -63,8 +63,12 @@ function fmtTime(seconds: number): string {
   return m > 0 ? `${m}:${String(rest).padStart(2, "0")}` : `${rest}s`;
 }
 
-function Sparkline({ samples, accent }: { samples: RunResult["samples"]; accent: string }) {
-  if (!samples.length) return <div className="spark-empty">start typing to see speed</div>;
+function modeKey(id: ModeId): TranslationKey {
+  return `mode.${id}` as TranslationKey;
+}
+
+function Sparkline({ samples, accent, emptyLabel }: { samples: RunResult["samples"]; accent: string; emptyLabel: string }) {
+  if (!samples.length) return <div className="spark-empty">{emptyLabel}</div>;
   const width = 100;
   const height = 42;
   const max = Math.max(40, ...samples.map((sample) => sample.wpm)) * 1.15;
@@ -83,8 +87,8 @@ function Sparkline({ samples, accent }: { samples: RunResult["samples"]; accent:
   );
 }
 
-function ResultChart({ result, accent }: { result: RunResult; accent: string }) {
-  if (result.samples.length < 2) return <div className="rchart-empty">Chart appears after a longer run</div>;
+function ResultChart({ result, accent, emptyLabel }: { result: RunResult; accent: string; emptyLabel: string }) {
+  if (result.samples.length < 2) return <div className="rchart-empty">{emptyLabel}</div>;
   const width = 600;
   const height = 180;
   const pad = 10;
@@ -124,9 +128,18 @@ function TypeStage({
   const wordsInnerRef = useRef<HTMLDivElement | null>(null);
   const activeRef = useRef<HTMLSpanElement | null>(null);
   const engine = useTypingEngine({ mode, lang, config, seed, onComplete });
+  const t = useT();
 
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: "center", inline: "nearest" });
+    const inner = wordsInnerRef.current;
+    const active = activeRef.current;
+    if (!inner || !active) return;
+    const area = inner.closest(".type-area");
+    const styles = area instanceof HTMLElement ? window.getComputedStyle(area) : window.getComputedStyle(active);
+    const fontSize = Number.parseFloat(styles.fontSize);
+    const lineHeight = Number.parseFloat(styles.lineHeight) || fontSize * 1.75;
+    const offset = Math.max(0, active.offsetTop - lineHeight);
+    inner.style.transform = `translateY(-${offset}px)`;
   }, [engine.index]);
 
   const chars = engine.text.split("");
@@ -157,18 +170,18 @@ function TypeStage({
           <div className="stat-val" style={{ color: accent }}>
             {mode === "time" ? Math.ceil(engine.remaining ?? 0) : engine.liveWpm}
           </div>
-          <div className="stat-lbl">{mode === "time" ? "seconds left" : "wpm"}</div>
+          <div className="stat-lbl">{mode === "time" ? t("stat.left") : t("stat.wpm")}</div>
         </div>
         <div className="stat">
           <div className="stat-val">{mode === "time" ? engine.liveWpm : `${engine.liveAcc}%`}</div>
-          <div className="stat-lbl">{mode === "time" ? "wpm" : "accuracy"}</div>
+          <div className="stat-lbl">{mode === "time" ? t("stat.wpm") : t("stat.acc")}</div>
         </div>
         <div className="stat stat-grow">
-          <Sparkline samples={engine.samples} accent={accent} />
+          <Sparkline samples={engine.samples} accent={accent} emptyLabel={t("stat.startHint")} />
         </div>
         <div className="stat">
           <div className="stat-val">{lang === "th" ? engine.liveCpm : engine.liveRaw}</div>
-          <div className="stat-lbl">{lang === "th" ? "cpm" : "raw"}</div>
+          <div className="stat-lbl">{lang === "th" ? t("stat.cpm") : t("stat.raw")}</div>
         </div>
       </div>
 
@@ -176,7 +189,7 @@ function TypeStage({
         <div className="prog-fill" style={{ width: `${Math.min(100, engine.progress * 100)}%`, background: accent }} />
       </div>
 
-      <div className={`type-area lang-${lang}`} tabIndex={0} aria-label="Typing text">
+      <div className={`type-area lang-${lang}`} tabIndex={0} aria-label={t("type.aria")}>
         <div className="words-inner" ref={wordsInnerRef}>
           {runs.map((run) => {
             if (run.kind === "space") {
@@ -310,7 +323,7 @@ function AppContent() {
           {MODES.map((item) => (
             <button className={`seg-btn ${mode === item.id ? "on" : ""}`} key={item.id} onClick={() => chooseMode(item.id)}>
               <span>{item.icon}</span>
-              <span className="seg-txt">{settings.lang === "th" ? item.th : item.en}</span>
+              <span className="seg-txt">{t(modeKey(item.id))}</span>
             </button>
           ))}
         </div>
@@ -334,13 +347,13 @@ function AppContent() {
             <div className="ai-ctl">
               <input
                 className="ai-input"
-                placeholder={settings.lang === "th" ? "หัวข้อ" : "topic"}
+                placeholder={t("ai.topicPlaceholder")}
                 value={config.aiTopic}
                 onChange={(event) => setConfig((current) => ({ ...current, aiTopic: event.target.value }))}
                 onKeyDown={(event) => { if (event.key === "Enter") void generateAi(); }}
               />
               <button className="gen-btn" onClick={() => void generateAi()} disabled={aiLoading}>
-                {aiLoading ? "Generating" : "Generate"}
+                {aiLoading ? t("ai.generating") : t("ai.generate")}
               </button>
             </div>
           ) : null}
@@ -351,27 +364,33 @@ function AppContent() {
 
       <main className="stage">
         {result ? (
-          <section className="result" aria-label="Typing result">
+          <section className="result" aria-label={t("result.aria")}>
             <div className="result-head">
-              <div className="result-title">Result · <span>{result.label}</span></div>
-              {best && result.wpm >= best.wpm ? <div className="pb-badge">Personal best</div> : null}
+              <div className="result-title">{t("result.title")} · <span>{result.label}</span></div>
+              {best && result.wpm >= best.wpm ? <div className="pb-badge">{t("result.pb")}</div> : null}
             </div>
             <div className="result-grid">
               <div className="result-left">
-                <div className="rstat"><div className="rstat-val">{result.wpm}</div><div className="rstat-sub">wpm</div></div>
-                <div className="rstat"><div className="rstat-val">{result.acc}%</div><div className="rstat-sub">accuracy</div></div>
+                <div className="rstat"><div className="rstat-val">{result.wpm}</div><div className="rstat-sub">{t("stat.wpm")}</div></div>
+                <div className="rstat"><div className="rstat-val">{result.acc}%</div><div className="rstat-sub">{t("stat.acc")}</div></div>
               </div>
-              <div className="result-chart-wrap"><ResultChart result={result} accent={accent.base} /></div>
+              <div className="result-chart-wrap"><ResultChart result={result} accent={accent.base} emptyLabel={t("result.chartHint")} /></div>
             </div>
+            {result.mode === "race" ? (
+              <div className={`race-result ${result.raceWon ? "won" : "lost"}`}>
+                <span>{result.raceWon ? t("race.won") : t("race.lost")}</span>
+                <span>{t("race.target")}: {result.raceTarget} {t("stat.wpm")}</span>
+              </div>
+            ) : null}
             <div className="result-row">
-              <div className="rstat"><div className="rstat-val">{result.raw}</div><div className="rstat-sub">raw</div></div>
-              <div className="rstat"><div className="rstat-val">{result.cpm}</div><div className="rstat-sub">cpm</div></div>
-              <div className="rstat"><div className="rstat-val">{result.errors}</div><div className="rstat-sub">errors</div></div>
-              <div className="rstat"><div className="rstat-val">{fmtTime(result.time)}</div><div className="rstat-sub">time</div></div>
+              <div className="rstat"><div className="rstat-val">{result.raw}</div><div className="rstat-sub">{t("stat.raw")}</div></div>
+              <div className="rstat"><div className="rstat-val">{result.cpm}</div><div className="rstat-sub">{t("stat.cpm")}</div></div>
+              <div className="rstat"><div className="rstat-val">{result.errors}</div><div className="rstat-sub">{t("stat.errors")}</div></div>
+              <div className="rstat"><div className="rstat-val">{fmtTime(result.time)}</div><div className="rstat-sub">{t("stat.time")}</div></div>
             </div>
             <div className="result-actions">
-              <button className="btn-primary" onClick={restart}>Next test</button>
-              <button className="btn-ghost" onClick={clearHistory}>Clear history</button>
+              <button className="btn-primary" onClick={restart}>{t("result.next")}</button>
+              <button className="btn-ghost" onClick={clearHistory}>{t("result.clear")}</button>
             </div>
           </section>
         ) : (
@@ -389,12 +408,12 @@ function AppContent() {
 
       <footer className="hist-bar">
         <div className="hist-best">
-          <span className="hist-lbl">Best</span>
+          <span className="hist-lbl">{t("result.best")}</span>
           <span className="hist-val">{best ? best.wpm : "—"}</span>
-          <span className="hist-unit">wpm</span>
+          <span className="hist-unit">{t("stat.wpm")}</span>
         </div>
         <div className="hist-list">
-          {history.length === 0 ? <span className="hist-empty">no runs yet — start typing</span> : null}
+          {history.length === 0 ? <span className="hist-empty">{t("hist.empty")}</span> : null}
           {history.slice(0, 8).map((run) => (
             <div className="hist-item" key={run.at}>
               <span className="hi-wpm">{run.wpm}</span>

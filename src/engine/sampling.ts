@@ -32,3 +32,8 @@ export function ghostCharsPerSecond(targetWpm: number): number {
 export function ghostIndex(targetWpm: number, elapsed: number, textLength: number): number {
   return Math.min(textLength, Math.floor(ghostCharsPerSecond(targetWpm) * elapsed));
 }
+
+/** User wins race when completed text before or exactly as the ghost reaches the finish. */
+export function raceWon(targetWpm: number, elapsed: number, textLength: number): boolean {
+  return elapsed <= textLength / ghostCharsPerSecond(targetWpm);
+}

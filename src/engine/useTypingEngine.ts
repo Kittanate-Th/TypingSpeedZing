@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildWords } from "../data/words";
 import { lessonById } from "../data/lessons";
 import { accuracy, cpm, rawWpm, wpm } from "./metrics";
-import { ghostIndex, markError, pushSample, RACE_TARGET_WPM } from "./sampling";
+import { ghostIndex, markError, pushSample, raceWon, RACE_TARGET_WPM } from "./sampling";
 import type { Lang, ModeId, RunConfig, RunResult, Sample } from "../types";
 
 export interface TypingEngineState {
@@ -46,12 +46,12 @@ function buildText(mode: ModeId, lang: Lang, config: RunConfig): string {
   return buildWords(lang, 70);
 }
 
-function labelFor(mode: ModeId, config: RunConfig): string {
+function labelFor(mode: ModeId, lang: Lang, config: RunConfig): string {
   if (mode === "time") return `${config.time}s`;
-  if (mode === "words") return `${config.words} words`;
-  if (mode === "lesson") return lessonById(config.lesson).name.en;
-  if (mode === "race") return `Level ${config.level}`;
-  return "AI text";
+  if (mode === "words") return lang === "th" ? `${config.words} คำ` : `${config.words} words`;
+  if (mode === "lesson") return lang === "th" ? lessonById(config.lesson).name.th : lessonById(config.lesson).name.en;
+  if (mode === "race") return lang === "th" ? `ระดับ ${config.level}` : `Level ${config.level}`;
+  return lang === "th" ? "ข้อความเอไอ" : "AI text";
 }
 
 export function useTypingEngine({ mode, lang, config, seed, onComplete }: Args): TypingEngineState {
@@ -101,6 +101,8 @@ export function useTypingEngine({ mode, lang, config, seed, onComplete }: Args):
     const correct = correctKeys.current;
     const total = totalKeys.current;
     const errors = Math.max(0, total - correct);
+    const raceTarget = mode === "race" ? RACE_TARGET_WPM[config.level] : undefined;
+    const didWinRace = raceTarget == null ? undefined : raceWon(raceTarget, safeElapsed, text.length);
     const result: RunResult = {
       wpm: wpm(correct, safeElapsed),
       raw: rawWpm(total, safeElapsed),
@@ -114,12 +116,13 @@ export function useTypingEngine({ mode, lang, config, seed, onComplete }: Args):
       samples: samples.slice(),
       errorsAt: errorsAt.slice(),
       heat: { ...heat },
-      label: labelFor(mode, config),
-      raceWon: mode === "race" ? index >= (ghostIndex(RACE_TARGET_WPM[config.level], safeElapsed, text.length) ?? 0) : undefined,
+      label: labelFor(mode, lang, config),
+      raceWon: didWinRace,
+      raceTarget,
       at: Date.now(),
     };
     onComplete(result);
-  }, [config, elapsed, errorsAt, heat, index, lang, mode, onComplete, samples, text.length]);
+  }, [config, elapsed, errorsAt, heat, lang, mode, onComplete, samples, text.length]);
 
   const timeLimit = mode === "time" ? config.time : null;
 
@@ -150,6 +153,13 @@ export function useTypingEngine({ mode, lang, config, seed, onComplete }: Args):
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.key === "Tab") return;
+      const target = event.target;
+      if (
+        target instanceof HTMLButtonElement ||
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) return;
 
       if (event.key === "Backspace") {
         event.preventDefault();

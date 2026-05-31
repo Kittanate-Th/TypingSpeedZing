@@ -35,6 +35,7 @@ export interface RunResult {
   heat: Record<string, number>; // physical KeyboardEvent.code -> error count
   label: string; // e.g. "30s", "25 words", "Level 3"
   raceWon?: boolean; // race mode only
+  raceTarget?: number; // race target WPM
   at: number; // Date.now()
 }
 

@@ -4,6 +4,7 @@ import {
   markError,
   ghostIndex,
   ghostCharsPerSecond,
+  raceWon,
   RACE_TARGET_WPM,
 } from "./sampling";
 
@@ -40,6 +41,10 @@ describe("ghost (race pace marker)", () => {
     expect(ghostIndex(50, 12, 100)).toBe(50); // 4.1667 c/s * 12s = 50
     expect(ghostIndex(20, 0, 100)).toBe(0);
     expect(ghostIndex(80, 1000, 100)).toBe(100); // capped at text length
+  });
+  it("wins only when the user finishes before the ghost target time", () => {
+    expect(raceWon(60, 20, 100)).toBe(true);
+    expect(raceWon(60, 20.001, 100)).toBe(false);
   });
   it("has a strictly increasing per-level target table", () => {
     const levels = [1, 2, 3, 4, 5];

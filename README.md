@@ -5,16 +5,11 @@
 **A bilingual ไทย / English typing-speed trainer that runs entirely in your browser.**
 *ฝึกพิมพ์เร็วสองภาษา ไทย–อังกฤษ ทำงานในเบราว์เซอร์ล้วน ๆ ไม่ต้องล็อกอิน*
 
-[Live demo](#) · [Design doc](docs/superpowers/specs/2026-05-31-typezing-design.md) · [PRD](docs/PRD.md) · [SPEC](docs/SPEC.md) · [Plan](docs/PLAN.md)
+[Live demo](https://kittanate-th.github.io/TypingSpeedZing/) · [Design doc](docs/superpowers/specs/2026-05-31-typezing-design.md) · [PRD](docs/PRD.md) · [SPEC](docs/SPEC.md) · [Plan](docs/PLAN.md)
 
 ![status](https://img.shields.io/badge/status-v1-22c55e) ![stack](https://img.shields.io/badge/Vite-React-TypeScript-0ea5e9) ![license](https://img.shields.io/badge/license-MIT-f59e0b)
 
 </div>
-
-> Replace the **Live demo** link after the first GitHub Pages deploy:
-> `https://<your-username>.github.io/TypingSpeedZing/`
-
----
 
 ## Why
 
